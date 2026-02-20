@@ -251,6 +251,8 @@ docker volume inspect meuvolume
 
 docker ps -a
 
+# Para remover `docker rm -f api`
+
 # o -rm ao finalizar irá remover o container, e não irá mais aparecer no docker ps -a
 
 docker run --rm --name seraremovidoao rodar -d -v example-volume:/app ubuntu
@@ -346,3 +348,39 @@ COPY --from=build /example/item/.dist /example/item/ isso vai soltar o dist dent
 # Acessar o bash
 
 docker run -it ubuntu bash
+
+
+# Redes precisam de estar no mesmo docker file para se enchergarem. Em diferentes docker file eles não se enchergam
+
+```yaml
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "3001:3001"
+    networks:
+      - testapp
+
+  api:
+    container_name: api
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+    build:
+      context: ./examples
+      dockerfile: ./Dockerfile
+    ports:
+      - '3333:3333'
+    volumes:
+      - ./examples:/usr/src/app/
+    networks:
+      - testapp
+
+networks:
+  testapp:
+```
